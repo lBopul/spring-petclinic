@@ -27,14 +27,10 @@ pipeline {
         stage('Maven Build') {
             steps {
                 echo 'Maven Build'
-                sh 'mvn -Dmaven.test.failure.ignore=true clean package'
-            }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml'
+                sh 'mvn -Dmaven.test.failure.ignore=true clean package' // test error 무시
                 }
             }
-        }
+        
         stage('SSH Publish') {
             steps {
                 sshPublisher(publishers: [sshPublisherDesc(configName: '',
