@@ -4,9 +4,7 @@ pipeline {
     tools {
         maven "M3"
         jdk "JDK17"
-        
-  }
-
+    }
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerCredential')
     }
@@ -15,8 +13,8 @@ pipeline {
         stage('Git Clone') {
             steps {
                 echo 'Git Clone'
-                git url: 'https://github.com/lBopul/spring-petclinic.git',
-                branch: 'main'
+                git url: 'https://github.com/lbopul/spring-petclinic.git',
+                branch:'main'
             }
             post {
                 success {
@@ -27,56 +25,55 @@ pipeline {
                 }
             }
         }
-        
+        // Maven Build 작업
         stage('Maven Build') {
             steps {
                 echo 'Maven Build'
-                sh 'mvn -Dmaven.test.failure.ignore=true clean package' // test error 무시
+                sh 'mvn -Dmaven.test.failure.ignore=true clean package'
             }
         }
-
         // Docker Image 생성
         stage('Docker Image Build') {
-            steps{
+            steps {
                 echo 'Docker Image Build'
                 dir("${env.WORKSPACE}") {
                     sh '''
-                       docker build -t spring-petclinic:$BUILD_NUMBER.
-                       docker tag spring-petclinic:1.0 lbopul/spring-petclinic:latest
-                    '''
+                        docker build -t spring-petclinic:$BUILD_NUMBER .
+                        docker tag spring-petclinic:$BUILD_NUMBER kimjunseop/spring-petclinic:latest
+                        '''
                 }
             }
         }
 
-        //Docer Image Push
+        // Docker Image Push
         stage('Docker Image Push') {
             steps {
                 sh '''
-                  echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password=stdin
-                  docker push lbopul/spring-petclinic:latest
-                '''
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    docker push kimjunseop/spring-petclinic:latest
+                    '''
             }
         }
         
         stage('SSH Publish') {
             steps {
-                sshPublisher(publishers: [sshPublisherDesc(configName: '',
-                transfers: [sshTransfer(cleanRemote: false, excludes: '',
+                echo 'SSH Publish'
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'target',
+                transfers: [sshTransfer(cleanRemote: false, excludes: '', 
                 execCommand: '''fuser -k 8080/tcp
                 export BUILD_ID=PetClinic
-                nohup java -jar /home/ubuntu/deploy/spring-petclinic-3.4.0-SNAPSHOT.jar >> nohup.out 2>&1 &''', 
+                nohup java -jar spring-petclinic-3.4.0-SNAPSHOT.jar >> nohup.out 2>&1 &''',
                 execTimeout: 120000, 
                 flatten: false, 
-                makeEmptyDirs: false,
+                makeEmptyDirs: false, 
                 noDefaultExcludes: false, 
                 patternSeparator: '[, ]+', 
-                remoteDirectory: '',
+                remoteDirectory: '', 
                 remoteDirectorySDF: false, 
-                removePrefix: 'target', 
-                sourceFiles: 'target/*.jar')],
+                removePrefix: 'target',
+                sourceFiles: 'target/*.jar')], 
                 usePromotionTimestamp: false,
-                useWorkspaceInPromotion: false,
-                verbose: false)])
+                useWorkspaceInPromotion: false, verbose: false)])
             }
         }
     }
