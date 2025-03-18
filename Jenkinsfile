@@ -46,7 +46,7 @@ pipeline {
                 remoteDirectory: '',
                 remoteDirectorySDF: false, 
                 removePrefix: 'target', 
-                sourceFiles: 'target.jar')],
+                sourceFiles: 'target/*.jar')],
                 usePromotionTimestamp: false,
                 useWorkspaceInPromotion: false,
                 verbose: false)])
