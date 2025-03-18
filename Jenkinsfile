@@ -28,8 +28,16 @@ pipeline {
             steps {
                 echo 'Maven Build'
                 sh 'mvn -Dmaven.test.failure.ignore=true clean package' // test error 무시
-                }
             }
+        }
+
+        // Docker Image 생성
+        stage('Docker Image Build') {
+            steps{
+                echo 'Docker Image Build'
+                dir("${env.WORKSPACE}") {
+            }
+        }
         
         stage('SSH Publish') {
             steps {
